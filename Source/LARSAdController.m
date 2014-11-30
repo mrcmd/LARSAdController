@@ -368,10 +368,20 @@ CGFloat const kLARSAdContainerHeightPod = 50.0f;
 
 #pragma mark - Cleanup
 - (void)cleanUpAdAdapter:(NSObject<TOLAdAdapter> *)adapter {
-    [adapter removeObserver:self forKeyPath:kLARSAdObserverKeyPathIsAdVisible];
+    // Catch rare expection about not registered observer:
+    // *** Terminating app due to uncaught exception 'NSRangeException', reason: 'Cannot remove an observer <LARSAdController 0x1ddcda20> for the key path "adVisible" from <TOLAdAdapterGoogleAds 0x1dda9ac0> because it is not registered as an observer.'
+    @try {
+        [adapter removeObserver:self forKeyPath:kLARSAdObserverKeyPathIsAdVisible];
+    } @catch(NSObject *anything) {
+        TOLWLog(@"Exception while removing observer: %@", anything);
+    }
     
     if ([adapter respondsToSelector:@selector(adLoaded)]) {
-        [adapter removeObserver:self forKeyPath:kLARSAdObserverKeyPathAdLoaded];
+        @try {
+            [adapter removeObserver:self forKeyPath:kLARSAdObserverKeyPathAdLoaded];
+        } @catch(NSObject *anything) {
+            TOLWLog(@"Exception while removing observer: %@", anything);
+        }
     }
     
     [adapter.bannerView removeFromSuperview];
